@@ -106,18 +106,20 @@ func GetMet() {
 func MakeGURequest() {
 
 	body, err := client.Post(fmt.Sprintf("%s%s%s%v", "http://localhost:8080/update/gauge/", storage.M.RandomValue.MName, "/", storage.M.RandomValue.Value), "text/plain", nil)
-	defer body.Body.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer body.Body.Close()
 }
 func MakeCoRequest() {
 
 	body, err := client.Post(fmt.Sprintf("%s%s%s%v", "http://localhost:8080/update/counter/", storage.M.PollCount.MName, "/", storage.M.PollCount.Value), "text/plain", nil)
-	defer body.Body.Close()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer body.Body.Close()
 }
 func main() {
 
