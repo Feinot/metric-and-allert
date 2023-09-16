@@ -6,6 +6,8 @@ import (
 	"github.com/Feinot/metric-and-allert/forms"
 	"github.com/Feinot/metric-and-allert/storage"
 	"log"
+	"os"
+	"strconv"
 
 	"math/rand"
 	"net/http"
@@ -28,12 +30,14 @@ var client = &http.Client{
 	},
 }
 var (
+	p, r           int
 	host           string
 	Poll           int
 	Met            Metric
 	Sum            sum
 	reportInterval = time.Duration(10) * time.Second
-	interval       = time.Duration(2) * time.Second
+
+	interval = time.Duration(2) * time.Second
 )
 
 func GetMet() {
@@ -125,14 +129,44 @@ func MakeCoRequest(host string) {
 	defer body.Body.Close()
 
 }
+func GetConfigHost() {
+
+	if os.Getenv("ADDRESS") != "" {
+		host = os.Getenv("ADDRESS")
+	}
+
+}
+func GetConfigReport() {
+
+	intrv, err := strconv.Atoi(os.Getenv("REPORT_INTERVA"))
+	if err == nil {
+		p = intrv
+	}
+
+	flag.Parse()
+
+}
+func GetConfigPool() {
+
+	intrv, err := strconv.Atoi(os.Getenv("POLL_INTERVAL"))
+	if err == nil {
+		r = intrv
+	}
+
+}
 func main() {
-	var p, r int
-	flag.StringVar(&host, "a", "localhost:8080", "")
-	flag.IntVar(&p, "p", 10, "")
 	flag.IntVar(&r, "r", 2, "")
+	flag.IntVar(&p, "p", 10, "")
+	flag.StringVar(&host, "a", "localhost:8080", "")
+	GetConfigHost()
+	GetConfigReport()
+
+	GetConfigPool()
+	flag.Parse()
+
 	reportInterval = time.Duration(p) * time.Second
 	interval = time.Duration(r) * time.Second
-	flag.Parse()
+
 	host = "http://" + host
 	go Interval(host)
 	select {}

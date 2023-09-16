@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -17,12 +18,19 @@ func main() {
 
 	Server()
 }
-func Server() {
+func GetConfig() []string {
+
+	if os.Getenv("ADDRESS") != "" {
+		return strings.Split(os.Getenv("ADDRESS"), "localhost")
+	}
 	flag.StringVar(&host, "a", "localhost:8080", "")
 
 	flag.Parse()
-	q := strings.Split(host, "localhost")
+	return strings.Split(host, "localhost")
+}
+func Server() {
 
+	q := GetConfig()
 	r := chi.NewRouter()
 
 	r.Post("/update/{type}/{name}/{value}", handler.RequestUpdateHandle)
