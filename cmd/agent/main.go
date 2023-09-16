@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/Feinot/metric-and-allert/forms"
 	"github.com/Feinot/metric-and-allert/storage"
@@ -27,6 +28,7 @@ var client = &http.Client{
 	},
 }
 var (
+	host           string
 	Poll           int
 	Met            Metric
 	Sum            sum
@@ -103,30 +105,39 @@ func GetMet() {
 	storage.M.RandomValue.MName = "RandomValue"
 
 }
-func MakeGURequest() {
+func MakeGURequest(host string) {
 
-	body, err := client.Post(fmt.Sprintf("%s%s%s%v", "http://localhost:8080/update/gauge/", storage.M.RandomValue.MName, "/", storage.M.RandomValue.Value), "text/plain", nil)
+	body, err := client.Post(fmt.Sprintf("%s%s%s%s%v", host, "/update/gauge/", storage.M.RandomValue.MName, "/", storage.M.RandomValue.Value), "text/plain", nil)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer body.Body.Close()
+
 }
-func MakeCoRequest() {
+func MakeCoRequest(host string) {
 
-	body, err := client.Post(fmt.Sprintf("%s%s%s%v", "http://localhost:8080/update/counter/", storage.M.PollCount.MName, "/", storage.M.PollCount.Value), "text/plain", nil)
+	body, err := client.Post(fmt.Sprintf("%s%s%s%s%v", host, "/update/counter/", storage.M.PollCount.MName, "/", storage.M.PollCount.Value), "text/plain", nil)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer body.Body.Close()
+
 }
 func main() {
-
-	go Interval()
+	var p, r int
+	flag.StringVar(&host, "a", "localhost:8080", "")
+	flag.IntVar(&p, "p", 10, "")
+	flag.IntVar(&r, "r", 2, "")
+	reportInterval = time.Duration(p) * time.Second
+	interval = time.Duration(r) * time.Second
+	flag.Parse()
+	host = "http://" + host
+	go Interval(host)
 	select {}
 }
-func Interval() {
+func Interval(host string) {
 	ticker := time.NewTicker(reportInterval)
 	tick := time.NewTicker(interval)
 
@@ -136,8 +147,8 @@ func Interval() {
 		case <-tick.C:
 			GetMet()
 		case <-ticker.C:
-			MakeGURequest()
-			MakeCoRequest()
+			MakeGURequest(host)
+			MakeCoRequest(host)
 
 		}
 	}
