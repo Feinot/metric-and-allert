@@ -42,7 +42,7 @@ type Metric struct {
 }
 type MemStorage struct {
 	Guage   map[string]float64
-	Counter map[string][]int64
+	Counter map[string]int64
 }
 type GuageBody struct {
 	Value float64
