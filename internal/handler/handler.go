@@ -21,7 +21,7 @@ func HandleGuage(name string, value float64) {
 
 }
 func HandleCaunter(name string, value int64) {
-	fmt.Println(storage.Counter[name])
+
 	if storage.Counter[name] != 0 {
 		storage.Counter[name] += value
 
@@ -111,7 +111,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, q[:len(q)-3], http.StatusOK)
 		case "counter":
 			q := storage.Counter[metricName]
-			fmt.Println(q, "::", storage.Counter)
+
 			if q == 0 {
 				http.Error(w, "", http.StatusNotFound)
 				return
