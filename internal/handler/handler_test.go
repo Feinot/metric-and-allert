@@ -154,14 +154,12 @@ func TestMetric_ValueHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			if test.mType == "gauge" {
-				s := make(map[string]float64)
-				s[test.name] = test.valueGauge
-				storage.Storage.Guage = s
+
+				storage.Gauge[test.name] = test.valueGauge
 			}
 			if test.mType == "counter" {
-				s := make(map[string]int64)
-				s[test.name] = test.valueCounter
-				storage.Storage.Counter = s
+
+				storage.Counter[test.name] = test.valueCounter
 			}
 
 			r, err := http.NewRequest(test.types, test.host, nil)
