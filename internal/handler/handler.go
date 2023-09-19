@@ -21,9 +21,9 @@ func HandleGuage(name string, value float64) {
 
 }
 func HandleCaunter(name string, value int64) {
-
+	fmt.Println(storage.Counter[name])
 	if storage.Counter[name] != 0 {
-		storage.Counter[name] = storage.Counter[name] + value
+		storage.Counter[name] += value
 
 	} else {
 		storage.Counter[name] = value
@@ -40,7 +40,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 		metricType := url[0]
 		metricName := strings.TrimSpace(url[1])
-		fmt.Println("'", metricName, "'")
+
 		if metricName == "" {
 			http.Error(w, "", http.StatusNotFound)
 			return
@@ -94,7 +94,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 		copy(arr, url)
 		metricType := arr[0]
 		metricName := strings.TrimSpace(arr[1])
-		fmt.Println("'", metricName, "'")
+
 		if metricName == "" {
 			http.Error(w, "", http.StatusNotFound)
 			return
@@ -102,16 +102,16 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 		switch metricType {
 		case "gauge":
 
-			fmt.Println("::", storage.Gauge[metricName], "::", storage.Gauge)
 			if storage.Gauge[metricName] == 0 {
 				http.Error(w, "", http.StatusNotFound)
-				//return
+				return
 			}
 			n := strconv.FormatFloat(storage.Gauge[metricName], 'f', 6, 64)
 
 			http.Error(w, n[:len(n)-3], http.StatusOK)
 		case "counter":
-			q := storage.Storage.Counter[metricName]
+			q := storage.Counter[metricName]
+			fmt.Println(q, "::", storage.Counter)
 			if q == 0 {
 				http.Error(w, "", http.StatusNotFound)
 				return
