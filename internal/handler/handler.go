@@ -17,21 +17,17 @@ var m Metric
 
 func HandleGuage(name string, value float64) {
 
-	s := make(map[string]float64)
-	s[name] = value
-	storage.Storage.Guage = s
+	storage.Gauge[name] = value
 
 }
 func HandleCaunter(name string, value int64) {
-	s := make(map[string]int64)
 
-	if storage.Storage.Counter[name] != 0 {
-		s[name] = storage.Storage.Counter[name] + value
+	if storage.Counter[name] != 0 {
+		storage.Counter[name] = storage.Counter[name] + value
 
 	} else {
-		s[m.MetricName] = m.Counter
+		storage.Counter[name] = value
 	}
-	storage.Storage.Counter = s
 
 }
 
@@ -43,8 +39,8 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 		url = strings.Split(url[1], "/")
 
 		metricType := url[0]
-		metricName := url[1]
-		fmt.Println(metricType, metricName)
+		metricName := strings.TrimSpace(url[1])
+		fmt.Println("'", metricName, "'")
 		if metricName == "" {
 			http.Error(w, "", http.StatusNotFound)
 			return
@@ -97,19 +93,22 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 
 		copy(arr, url)
 		metricType := arr[0]
-		metricName := arr[1]
+		metricName := strings.TrimSpace(arr[1])
+		fmt.Println("'", metricName, "'")
 		if metricName == "" {
 			http.Error(w, "", http.StatusNotFound)
 			return
 		}
 		switch metricType {
 		case "gauge":
-			q := storage.Storage.Guage[metricName]
-			if q == 0 {
+
+			fmt.Println("::", storage.Gauge[metricName], "::", storage.Gauge)
+			if storage.Gauge[metricName] == 0 {
 				http.Error(w, "", http.StatusNotFound)
-				return
+				//return
 			}
-			n := strconv.FormatFloat(q, 'f', 6, 64)
+			n := strconv.FormatFloat(storage.Gauge[metricName], 'f', 6, 64)
+
 			http.Error(w, n[:len(n)-3], http.StatusOK)
 		case "counter":
 			q := storage.Storage.Counter[metricName]
