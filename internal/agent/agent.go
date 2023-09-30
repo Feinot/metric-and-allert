@@ -2,7 +2,6 @@ package agent
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -130,11 +129,11 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-ticker.C:
 			err := SandGaugeRequest(host)
 			if err != nil {
-				log.Fatal("cannot sand Gauge post request: %s",err)
+				fmt.Print("cannot sand Gauge post request: %s", err)
 			}
 			err = SandCounterRequest(host)
 			if err != nil {
-				log.Fatal("cannot sand Counter post request: %s",err)
+				fmt.Print("cannot sand Gauge post request: %s", err)
 			}
 
 		}
