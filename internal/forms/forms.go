@@ -52,3 +52,11 @@ type CounterBody struct {
 	Value int64
 	MName string
 }
+type LoggerBody struct {
+	URL          string
+	Method       string
+	Duration     int64
+	StatusCode   int
+	SizeResponse int
+	TypeLog      string
+}
