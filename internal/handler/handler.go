@@ -200,9 +200,9 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "", http.StatusNotFound)
 				return
 			}
-			q := strconv.FormatFloat(storage.Gauge[metricName], 'f', 6, 64)
+			q := strconv.FormatFloat(storage.Gauge[metricName], 'f', 3, 64)
 
-			http.Error(w, q[:len(q)-3], http.StatusOK)
+			http.Error(w, q[:len(q)], http.StatusOK)
 		case "counter":
 			q := storage.Counter[metricName]
 
