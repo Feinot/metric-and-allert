@@ -17,7 +17,7 @@ func LoadAgentConfig() Config {
 	var config Config
 	flag.IntVar(&config.Pool, "r", 2, "")
 	flag.IntVar(&config.ReportPool, "p", 10, "")
-	flag.StringVar(&config.Host, "a", "localhost:8081", "")
+	flag.StringVar(&config.Host, "a", "localhost:8080", "")
 	flag.Parse()
 
 	if os.Getenv("ADDRESS") != "" {
