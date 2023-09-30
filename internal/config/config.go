@@ -40,7 +40,7 @@ func LoadServerConfig() []string {
 	if os.Getenv("ADDRESS") != "" {
 		return strings.Split(os.Getenv("ADDRESS"), "localhost")
 	}
-	flag.StringVar(&host, "a", "localhost:8081", "")
+	flag.StringVar(&host, "a", "localhost:8080", "")
 
 	flag.Parse()
 	return strings.Split(host, "localhost")
