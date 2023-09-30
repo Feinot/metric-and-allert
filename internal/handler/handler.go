@@ -214,14 +214,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			str := strconv.FormatInt(q, 10)
 
 			http.Error(w, str, http.StatusOK)
-		case "/":
-			tmpl := template.Must(template.New("storage.Storage").Parse(`<div>
-            <h1>Guage</h1>
-			<p1>{{ .Guage}}</p>
-			<h1>Counter</h1>
-            <p>{{ .Counter}}</p>
-        </div>`))
-			tmpl.Execute(w, storage.Storage)
+
 		default:
 			http.Error(w, "", http.StatusNotFound)
 			return
