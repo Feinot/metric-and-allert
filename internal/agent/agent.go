@@ -129,11 +129,11 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-ticker.C:
 			err := SandGaugeRequest(host)
 			if err != nil {
-				fmt.Print("cannot sand Gauge post request: %s", err)
+				fmt.Print("cannot sand Gauge post request:", err)
 			}
 			err = SandCounterRequest(host)
 			if err != nil {
-				fmt.Print("cannot sand Gauge post request: %s", err)
+				fmt.Print("cannot sand Gauge post request: ", err)
 			}
 
 		}
