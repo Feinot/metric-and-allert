@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,22 +38,22 @@ func HandleCaunter(name string, value int64) *int64 {
 func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var metrics forms.Metrics
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r.Body)
+
+	buf, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+	if err := json.Unmarshal(buf, &metrics); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	fmt.Println(metrics)
 	switch metrics.MType {
 	case "gauge":
-
+		metrics.Value = new(float64)
 		metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
 
 		resp, err := json.Marshal(metrics)
@@ -169,8 +170,8 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Error(w, "", http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
 	case "counter":
 		fmt.Println("i cann")
@@ -185,8 +186,8 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Error(w, "", http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
 	default:
 		http.Error(w, "default", http.StatusBadRequest)
