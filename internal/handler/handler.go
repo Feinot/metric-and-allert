@@ -170,6 +170,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		}
 
 		http.Error(w, "", http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(resp)
 	case "counter":
 		fmt.Println("i cann")
@@ -185,6 +186,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		}
 
 		http.Error(w, "", http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(resp)
 	default:
 		http.Error(w, "default", http.StatusBadRequest)
