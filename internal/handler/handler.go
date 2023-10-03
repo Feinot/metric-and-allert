@@ -222,7 +222,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			q := storage.Counter[metricName]
 
 			if q == 0 {
-				http.Error(w, "", 400)
+				http.Error(w, "", http.StatusNotFound)
 				return
 
 			}
