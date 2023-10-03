@@ -34,105 +34,104 @@ func HandleCaunter(name string, value int64) *int64 {
 	return &q
 
 }
+func HabdleUpdate(w http.ResponseWriter, r *http.Request) {
+
+	var metrics forms.Metrics
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(metrics)
+	switch metrics.MType {
+	case "gauge":
+
+		metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
+
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fmt.Println(*metrics.Value)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(resp)
+	case "counter":
+		metrics.Delta = HandleCaunter(metrics.ID, *metrics.Delta)
+
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(resp)
+	}
+
+}
 
 func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 
 	case http.MethodPost:
-		switch r.Header.Get("Content-Type") {
-		case "text/plain":
 
-			url := strings.Split(r.URL.Path, "/update/")
-			url = strings.Split(url[1], "/")
+		url := strings.Split(r.URL.Path, "/update/")
+		url = strings.Split(url[1], "/")
 
-			metricType := url[0]
-			metricName := strings.TrimSpace(url[1])
+		metricType := url[0]
+		metricName := strings.TrimSpace(url[1])
 
-			if metricName == "" {
-				http.Error(w, "", http.StatusNotFound)
+		if metricName == "" {
+			http.Error(w, "", http.StatusNotFound)
 
-				return
-			}
-
-			switch metricType {
-			case "gauge":
-
-				if len(url) > 2 {
-					url = strings.Split(url[2], "\n")
-					value, err := strconv.ParseFloat(url[0], 64)
-
-					if err != nil {
-						fmt.Print(err)
-						w.WriteHeader(http.StatusBadRequest)
-						return
-					}
-					HandleGuage(metricName, value)
-					w.WriteHeader(200)
-
-				}
-
-			case "counter":
-				if len(url) > 2 {
-					url = strings.Split(url[2], "\n")
-					value, err := strconv.ParseInt(url[0], 10, 64)
-					if err != nil {
-						fmt.Print(err)
-						w.WriteHeader(http.StatusBadRequest)
-						return
-					}
-					HandleCaunter(metricName, value)
-					w.WriteHeader(200)
-				}
-
-			default:
-
-				w.WriteHeader(http.StatusBadRequest)
-
-				return
-			}
-		case "application/json":
-			var metrics forms.Metrics
-			var buf bytes.Buffer
-			_, err := buf.ReadFrom(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			fmt.Println(metrics)
-			switch metrics.MType {
-			case "gauge":
-
-				metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
-
-				resp, err := json.Marshal(metrics)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				fmt.Println(*metrics.Value)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(200)
-				w.Write(resp)
-			case "counter":
-				metrics.Delta = HandleCaunter(metrics.ID, *metrics.Delta)
-
-				resp, err := json.Marshal(metrics)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(200)
-				w.Write(resp)
-
-			}
-
+			return
 		}
+
+		switch metricType {
+		case "gauge":
+
+			if len(url) > 2 {
+				url = strings.Split(url[2], "\n")
+				value, err := strconv.ParseFloat(url[0], 64)
+
+				if err != nil {
+					fmt.Print(err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				HandleGuage(metricName, value)
+				w.WriteHeader(200)
+
+			}
+
+		case "counter":
+			if len(url) > 2 {
+				url = strings.Split(url[2], "\n")
+				value, err := strconv.ParseInt(url[0], 10, 64)
+				if err != nil {
+					fmt.Print(err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				HandleCaunter(metricName, value)
+				w.WriteHeader(200)
+			}
+
+		default:
+
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
 	}
 }
 func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
@@ -221,6 +220,9 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
 				w.Write(resp)
 			}
+		default:
+			http.Error(w, "", 404)
+			return
 
 		}
 	}
