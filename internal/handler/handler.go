@@ -106,7 +106,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 				if err != nil {
 					fmt.Print(err)
-					http.Error(w, "", 400)
+					http.Error(w, "", http.StatusBadRequest)
 					return
 				}
 				HandleGuage(metricName, value)
@@ -120,7 +120,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 				value, err := strconv.ParseInt(url[0], 10, 64)
 				if err != nil {
 					fmt.Print(err)
-					http.Error(w, "", 400)
+					http.Error(w, "", http.StatusBadRequest)
 					return
 				}
 				HandleCaunter(metricName, value)
@@ -129,7 +129,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 		default:
 
-			http.Error(w, "", http.StatusNotFound)
+			http.Error(w, "", http.StatusBadRequest)
 
 			return
 		}
@@ -187,7 +187,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusOK)
 		w.Write(resp)
 	default:
-		http.Error(w, "default", 400)
+		http.Error(w, "default", http.StatusBadRequest)
 	}
 
 }
@@ -222,7 +222,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			q := storage.Counter[metricName]
 
 			if q == 0 {
-				http.Error(w, "", http.StatusNotFound)
+				http.Error(w, "", 400)
 				return
 
 			}
