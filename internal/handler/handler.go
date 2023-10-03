@@ -157,8 +157,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Println(*metrics.Value)
-		w.Header().Set("Content-Type", "application/json")
+
 		w.WriteHeader(200)
 		w.Write(resp)
 	case "counter":
