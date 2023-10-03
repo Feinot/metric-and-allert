@@ -136,20 +136,22 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 }
 func HandleValue(w http.ResponseWriter, r *http.Request) {
 	var metrics forms.Metrics
+	var mt forms.VMetric
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	fmt.Println(metrics)
-	switch metrics.MType {
+	switch mt.MType {
 	case "gauge":
-
+		metrics.ID = mt.ID
+		metrics.MType = mt.MType
 		*metrics.Value = storage.Gauge[metrics.ID]
 
 		resp, err := json.Marshal(metrics)
@@ -161,6 +163,8 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write(resp)
 	case "counter":
+		metrics.ID = mt.ID
+		metrics.MType = mt.MType
 		*metrics.Delta = storage.Counter[metrics.ID]
 
 		resp, err := json.Marshal(metrics)
@@ -168,7 +172,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
+
 		w.WriteHeader(200)
 		w.Write(resp)
 	}
