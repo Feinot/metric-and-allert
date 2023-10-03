@@ -133,7 +133,6 @@ func SandJSONGaugeRequest(host string) error {
 	fmt.Println(*metrics.Value)
 
 	resp, err := client.Post(fmt.Sprintf("%s%s", host, "/update/"), "application/json", q)
-	resp.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		return fmt.Errorf("cannot sand post request gauge: %w", err)

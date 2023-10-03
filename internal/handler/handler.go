@@ -144,7 +144,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	fmt.Println(buf.String())
 	if err != nil {
-		http.Error(w, "err.Error()asdasd", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
