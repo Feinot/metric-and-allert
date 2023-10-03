@@ -39,6 +39,8 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	var metrics forms.Metrics
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
+	defer r.Body.Close()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -104,11 +106,11 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 				if err != nil {
 					fmt.Print(err)
-					w.WriteHeader(http.StatusBadRequest)
+					http.Error(w, "", http.StatusNotFound)
 					return
 				}
 				HandleGuage(metricName, value)
-				w.WriteHeader(200)
+				http.Error(w, "", http.StatusOK)
 
 			}
 
@@ -118,16 +120,16 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 				value, err := strconv.ParseInt(url[0], 10, 64)
 				if err != nil {
 					fmt.Print(err)
-					w.WriteHeader(http.StatusBadRequest)
+					http.Error(w, "", http.StatusNotFound)
 					return
 				}
 				HandleCaunter(metricName, value)
-				w.WriteHeader(200)
+				http.Error(w, "", http.StatusOK)
 			}
 
 		default:
 
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, "", http.StatusNotFound)
 
 			return
 		}
@@ -139,16 +141,18 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	var mt forms.VMetric
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
+	fmt.Println(buf.String())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "err.Error()asdasd", http.StatusBadRequest)
 		return
 	}
-	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+
+	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		http.Error(w, "err.Error()asda", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(metrics)
-	switch mt.MType {
+
+	switch metrics.MType {
 	case "gauge":
 		metrics.ID = mt.ID
 		metrics.MType = mt.MType
@@ -160,7 +164,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.WriteHeader(200)
+		http.Error(w, "", http.StatusOK)
 		w.Write(resp)
 	case "counter":
 		metrics.ID = mt.ID
@@ -173,8 +177,10 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.WriteHeader(200)
+		http.Error(w, "", http.StatusOK)
 		w.Write(resp)
+	default:
+		w.WriteHeader(400)
 	}
 
 }
@@ -221,8 +227,58 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case http.MethodPost:
-		http.Error(w, "", http.StatusMethodNotAllowed)
-		return
+		var metrics forms.Metrics
+		var mt forms.VMetric
+		var buf bytes.Buffer
+		_, err := buf.ReadFrom(r.Body)
+		defer r.Body.Close()
+		fmt.Println(buf.String())
+		if err != nil {
+			http.Error(w, "err.Error()asdasd", http.StatusBadRequest)
+			return
+		}
+
+		if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
+			http.Error(w, "err.Error()asda", http.StatusBadRequest)
+			return
+		}
+		metrics.ID = mt.ID
+		metrics.MType = mt.MType
+		fmt.Println(metrics.MType)
+		switch metrics.MType {
+
+		case "gauge":
+			fmt.Println("i cann")
+
+			q := storage.Gauge[metrics.ID]
+			metrics.Value = &q
+
+			resp, err := json.Marshal(metrics)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			http.Error(w, "", http.StatusOK)
+			w.Write(resp)
+		case "counter":
+			fmt.Println("i cann")
+			metrics.ID = mt.ID
+			metrics.MType = mt.MType
+			q := storage.Counter[metrics.ID]
+			metrics.Delta = &q
+
+			resp, err := json.Marshal(metrics)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			http.Error(w, "", http.StatusOK)
+			w.Write(resp)
+		default:
+			http.Error(w, "default", 400)
+		}
 
 	}
 }
