@@ -34,7 +34,7 @@ func HandleCaunter(name string, value int64) *int64 {
 	return &q
 
 }
-func HabdleUpdate(w http.ResponseWriter, r *http.Request) {
+func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var metrics forms.Metrics
 	var buf bytes.Buffer
@@ -134,97 +134,93 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+func HandleValue(w http.ResponseWriter, r *http.Request) {
+	var metrics forms.Metrics
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println(metrics)
+	switch metrics.MType {
+	case "gauge":
+
+		*metrics.Value = storage.Gauge[metrics.ID]
+
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fmt.Println(*metrics.Value)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(resp)
+	case "counter":
+		*metrics.Delta = storage.Counter[metrics.ID]
+
+		resp, err := json.Marshal(metrics)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(resp)
+	}
+
+}
 func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		switch r.Header.Get("Content-Type") {
-		case "text/plain":
 
-			arr := make([]string, 3)
-			url := strings.Split(r.URL.Path, "/value/")
-			url = strings.Split(url[1], "/")
+		arr := make([]string, 3)
+		url := strings.Split(r.URL.Path, "/value/")
+		url = strings.Split(url[1], "/")
 
-			copy(arr, url)
-			metricType := arr[0]
-			metricName := strings.TrimSpace(arr[1])
+		copy(arr, url)
+		metricType := arr[0]
+		metricName := strings.TrimSpace(arr[1])
 
-			if metricName == "" {
-				http.Error(w, "", http.StatusNotFound)
-				return
-			}
-			switch metricType {
-			case "gauge":
-
-				if storage.Gauge[metricName] == 0 {
-					http.Error(w, "", http.StatusNotFound)
-					return
-				}
-				q := strconv.FormatFloat(storage.Gauge[metricName], 'f', 3, 64)
-				fmt.Println(q)
-				http.Error(w, q, http.StatusOK)
-			case "counter":
-				q := storage.Counter[metricName]
-
-				if q == 0 {
-					http.Error(w, "", http.StatusNotFound)
-					return
-
-				}
-				str := strconv.FormatInt(q, 10)
-				fmt.Println(str)
-				http.Error(w, str, http.StatusOK)
-
-			default:
-				http.Error(w, "", http.StatusNotFound)
-				return
-			}
-		case http.MethodPost:
-			http.Error(w, "", http.StatusMethodNotAllowed)
+		if metricName == "" {
+			http.Error(w, "", http.StatusNotFound)
 			return
-		case "application/json":
-			var metrics forms.Metrics
-			var buf bytes.Buffer
-			_, err := buf.ReadFrom(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			fmt.Println(metrics)
-			switch metrics.MType {
-			case "gauge":
-
-				*metrics.Value = storage.Gauge[metrics.ID]
-
-				resp, err := json.Marshal(metrics)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				fmt.Println(*metrics.Value)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(200)
-				w.Write(resp)
-			case "counter":
-				*metrics.Delta = storage.Counter[metrics.ID]
-
-				resp, err := json.Marshal(metrics)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(200)
-				w.Write(resp)
-			}
-		default:
-			http.Error(w, "", 404)
-			return
-
 		}
+		switch metricType {
+		case "gauge":
+
+			if storage.Gauge[metricName] == 0 {
+				http.Error(w, "", http.StatusNotFound)
+				return
+			}
+			q := strconv.FormatFloat(storage.Gauge[metricName], 'f', 3, 64)
+			fmt.Println(q)
+			http.Error(w, q, http.StatusOK)
+		case "counter":
+			q := storage.Counter[metricName]
+
+			if q == 0 {
+				http.Error(w, "", http.StatusNotFound)
+				return
+
+			}
+			str := strconv.FormatInt(q, 10)
+			fmt.Println(str)
+			http.Error(w, str, http.StatusOK)
+
+		default:
+			http.Error(w, "", http.StatusNotFound)
+			return
+		}
+	case http.MethodPost:
+		http.Error(w, "", http.StatusMethodNotAllowed)
+		return
+
 	}
 }
 func HomeHandle(w http.ResponseWriter, r *http.Request) {
