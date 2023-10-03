@@ -20,7 +20,7 @@ func Run() {
 	r.Post("/update/", handler.HandleUpdate)
 
 	r.Get("/value/{type}/{name}", handler.RequestValueHandle)
-	r.Post("/value/", handler.RequestValueHandle)
+	r.Post("/value/", handler.HandleValue)
 
 	r.Get("/", (handler.HomeHandle))
 

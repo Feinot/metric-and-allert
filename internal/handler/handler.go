@@ -141,22 +141,27 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	var mt forms.VMetric
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
+	defer r.Body.Close()
 	fmt.Println(buf.String())
 	if err != nil {
 		http.Error(w, "err.Error()asdasd", http.StatusBadRequest)
 		return
 	}
 
-	if err := json.Unmarshal(buf.Bytes(), &metrics); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
 		http.Error(w, "err.Error()asda", http.StatusBadRequest)
 		return
 	}
-
+	metrics.ID = mt.ID
+	metrics.MType = mt.MType
+	fmt.Println(metrics.MType)
 	switch metrics.MType {
+
 	case "gauge":
-		metrics.ID = mt.ID
-		metrics.MType = mt.MType
-		*metrics.Value = storage.Gauge[metrics.ID]
+		fmt.Println("i cann")
+
+		q := storage.Gauge[metrics.ID]
+		metrics.Value = &q
 
 		resp, err := json.Marshal(metrics)
 		if err != nil {
@@ -167,9 +172,11 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusOK)
 		w.Write(resp)
 	case "counter":
+		fmt.Println("i cann")
 		metrics.ID = mt.ID
 		metrics.MType = mt.MType
-		*metrics.Delta = storage.Counter[metrics.ID]
+		q := storage.Counter[metrics.ID]
+		metrics.Delta = &q
 
 		resp, err := json.Marshal(metrics)
 		if err != nil {
@@ -180,10 +187,11 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusOK)
 		w.Write(resp)
 	default:
-		w.WriteHeader(400)
+		http.Error(w, "default", 400)
 	}
 
 }
+
 func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -226,61 +234,11 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "", http.StatusNotFound)
 			return
 		}
-	case http.MethodPost:
-		var metrics forms.Metrics
-		var mt forms.VMetric
-		var buf bytes.Buffer
-		_, err := buf.ReadFrom(r.Body)
-		defer r.Body.Close()
-		fmt.Println(buf.String())
-		if err != nil {
-			http.Error(w, "err.Error()asdasd", http.StatusBadRequest)
-			return
-		}
 
-		if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
-			http.Error(w, "err.Error()asda", http.StatusBadRequest)
-			return
-		}
-		metrics.ID = mt.ID
-		metrics.MType = mt.MType
-		fmt.Println(metrics.MType)
-		switch metrics.MType {
-
-		case "gauge":
-			fmt.Println("i cann")
-
-			q := storage.Gauge[metrics.ID]
-			metrics.Value = &q
-
-			resp, err := json.Marshal(metrics)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			http.Error(w, "", http.StatusOK)
-			w.Write(resp)
-		case "counter":
-			fmt.Println("i cann")
-			metrics.ID = mt.ID
-			metrics.MType = mt.MType
-			q := storage.Counter[metrics.ID]
-			metrics.Delta = &q
-
-			resp, err := json.Marshal(metrics)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			http.Error(w, "", http.StatusOK)
-			w.Write(resp)
-		default:
-			http.Error(w, "default", 400)
-		}
-
+	default:
+		http.Error(w, "default", 400)
 	}
+
 }
 func HomeHandle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
