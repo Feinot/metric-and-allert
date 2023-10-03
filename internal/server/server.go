@@ -17,7 +17,7 @@ func Run() {
 	r.Use(logger.WithLogging)
 
 	r.Post("/update/{type}/{name}/{value}", handler.RequestUpdateHandle)
-	r.Post("/update/", handler.HandleUpdate)
+	//r.Post("/update/", handler.HandleUpdate)
 
 	r.Get("/value/{type}/{name}", handler.RequestValueHandle)
 	r.Post("/value/", handler.HandleValue)
