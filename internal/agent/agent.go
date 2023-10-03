@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -117,6 +119,51 @@ func SandCounterRequest(host string) error {
 	return nil
 
 }
+func SandJsonGaugeRequest(host string) error {
+	var metrics forms.Metrics
+	metrics.Value = &storage.M.RandomValue.Value
+	metrics.ID = storage.M.RandomValue.MName
+	metrics.MType = "gauge"
+	sp, err := json.Marshal(metrics)
+	q := bytes.NewReader(sp)
+	if err != nil {
+		fmt.Println("err")
+		return err
+	}
+	fmt.Println(*metrics.Value)
+
+	resp, err := client.Post(fmt.Sprintf("%s%s", host, "/update/"), "application/json", q)
+	resp.Header.Set("Content-Type", "application/json")
+
+	if err != nil {
+		return fmt.Errorf("cannot sand post request gauge: %w", err)
+	}
+	defer resp.Body.Close()
+	return nil
+
+}
+func SandJsonCounterRequest(host string) error {
+	var metrics forms.Metrics
+	metrics.Delta = &storage.M.PollCount.Value
+	metrics.ID = storage.M.PollCount.MName
+	metrics.MType = "counter"
+	sp, err := json.Marshal(metrics)
+	q := bytes.NewReader(sp)
+	if err != nil {
+		fmt.Println("err")
+		return err
+	}
+	//fmt.Println(*metrics.Value)
+
+	resp, err := client.Post(fmt.Sprintf("%s%s", host, "/update/"), "application/json", q)
+
+	if err != nil {
+		return fmt.Errorf("cannot sand post request counter: %w", err)
+	}
+	defer resp.Body.Close()
+	return nil
+
+}
 func Run(host string, reportInterval, interval time.Duration) {
 	ticker := time.NewTicker(reportInterval)
 	tick := time.NewTicker(interval)
@@ -127,11 +174,11 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-tick.C:
 			GetMetric()
 		case <-ticker.C:
-			err := SandGaugeRequest(host)
+			err := SandJsonGaugeRequest(host)
 			if err != nil {
 				fmt.Print("cannot sand Gauge post request:", err)
 			}
-			err = SandCounterRequest(host)
+			err = SandJsonCounterRequest(host)
 			if err != nil {
 				fmt.Print("cannot sand Gauge post request: ", err)
 			}

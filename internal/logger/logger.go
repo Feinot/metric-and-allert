@@ -57,6 +57,7 @@ func WithLogging(h http.Handler) http.Handler {
 
 		duration := time.Since(start)
 
+		fmt.Println(r.Header.Get("Content-Type"))
 		sugar.Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
