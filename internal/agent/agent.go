@@ -119,7 +119,7 @@ func SandCounterRequest(host string) error {
 	return nil
 
 }
-func SandJsonGaugeRequest(host string) error {
+func SandJSONGaugeRequest(host string) error {
 	var metrics forms.Metrics
 	metrics.Value = &storage.M.RandomValue.Value
 	metrics.ID = storage.M.RandomValue.MName
@@ -142,7 +142,7 @@ func SandJsonGaugeRequest(host string) error {
 	return nil
 
 }
-func SandJsonCounterRequest(host string) error {
+func SandJSONCounterRequest(host string) error {
 	var metrics forms.Metrics
 	metrics.Delta = &storage.M.PollCount.Value
 	metrics.ID = storage.M.PollCount.MName
@@ -174,11 +174,11 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-tick.C:
 			GetMetric()
 		case <-ticker.C:
-			err := SandJsonGaugeRequest(host)
+			err := SandJSONGaugeRequest(host)
 			if err != nil {
 				fmt.Print("cannot sand Gauge post request:", err)
 			}
-			err = SandJsonCounterRequest(host)
+			err = SandJSONCounterRequest(host)
 			if err != nil {
 				fmt.Print("cannot sand Gauge post request: ", err)
 			}
