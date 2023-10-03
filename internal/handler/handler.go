@@ -18,20 +18,20 @@ type Metric forms.Metric
 
 func HandleGuage(name string, value float64) *float64 {
 
-	storage.Gauge[name] = value
-	q := storage.Gauge[name]
+	storage.ServerGauge[name] = value
+	q := storage.ServerGauge[name]
 	return &q
 
 }
 func HandleCaunter(name string, value int64) *int64 {
 
-	if storage.Counter[name] != 0 {
-		storage.Counter[name] += value
+	if storage.ServerCounter[name] != 0 {
+		storage.ServerCounter[name] += value
 
 	} else {
-		storage.Counter[name] = value
+		storage.ServerCounter[name] = value
 	}
-	q := storage.Counter[name]
+	q := storage.ServerCounter[name]
 	return &q
 
 }
@@ -161,7 +161,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	case "gauge":
 		fmt.Println("i cann")
 
-		q := storage.Gauge[metrics.ID]
+		q := storage.ServerGauge[metrics.ID]
 		metrics.Value = &q
 
 		resp, err := json.Marshal(metrics)
@@ -177,7 +177,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("i cann")
 		metrics.ID = mt.ID
 		metrics.MType = mt.MType
-		q := storage.Counter[metrics.ID]
+		q := storage.ServerCounter[metrics.ID]
 		metrics.Delta = &q
 
 		resp, err := json.Marshal(metrics)
@@ -214,15 +214,15 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 		switch metricType {
 		case "gauge":
 
-			if storage.Gauge[metricName] == 0 {
+			if storage.ServerGauge[metricName] == 0 {
 				http.Error(w, "", http.StatusNotFound)
 				return
 			}
-			q := strconv.FormatFloat(storage.Gauge[metricName], 'f', -1, 64)
+			q := strconv.FormatFloat(storage.ServerGauge[metricName], 'f', -1, 64)
 			fmt.Println(q)
 			http.Error(w, q, http.StatusOK)
 		case "counter":
-			q := storage.Counter[metricName]
+			q := storage.ServerCounter[metricName]
 
 			if q == 0 {
 				http.Error(w, "", http.StatusNotFound)

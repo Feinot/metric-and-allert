@@ -155,11 +155,11 @@ func TestMetric_ValueHandler(t *testing.T) {
 		t.Run(test.title, func(t *testing.T) {
 			if test.mType == "gauge" {
 
-				storage.Gauge[test.name] = test.valueGauge
+				storage.ServerGauge[test.name] = test.valueGauge
 			}
 			if test.mType == "counter" {
 
-				storage.Counter[test.name] = test.valueCounter
+				storage.ServerCounter[test.name] = test.valueCounter
 			}
 
 			r, err := http.NewRequest(test.types, test.host, nil)
