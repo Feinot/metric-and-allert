@@ -53,7 +53,8 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(metrics)
 	switch metrics.MType {
 	case "gauge":
-		metrics.Value = new(float64)
+		//metrics.Value = new(float64)
+		fmt.Println("value:", *metrics.Value)
 		metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
 
 		resp, err := json.Marshal(metrics)
