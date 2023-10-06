@@ -80,7 +80,7 @@ func GzipMiddleware(h http.Handler) http.HandlerFunc {
 		fmt.Println("heder", w.Header().Get("Content-Type"))
 		if r.URL.Path == "/" {
 			//w.Header().Set("Content-Type", "html/text")
-			w.Header().Set("Accept", "gzip")
+			w.Header().Set("Accept-Encoding", "gzip")
 			h.ServeHTTP(w, r)
 			return
 		}
