@@ -77,6 +77,11 @@ func GzipMiddleware(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// по умолчанию устанавливаем оригинальный http.ResponseWriter как тот,
 		// который будем передавать следующей функции
+		fmt.Println("heder", w.Header().Get("Content-Type"))
+		if r.URL.Path == "/" {
+			h.ServeHTTP(w, r)
+			return
+		}
 
 		ow := w
 
