@@ -190,11 +190,11 @@ func SandJSONGaugeRequest(host string) error {
 
 		}
 		req.Header.Set("Content-Encoding", "gzip")
-		client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			return fmt.Errorf("cannot sand post request gauge: %w%s   ", err, key)
 		}
-		defer req.Body.Close()
+		defer resp.Body.Close()
 
 	}
 	return nil
@@ -231,11 +231,11 @@ func SandJSONCounterRequest(host string) error {
 
 	}
 	req.Header.Set("Content-Encoding", "gzip")
-	client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("cannot sand post request gauge: %w  ", err)
 	}
-	defer req.Body.Close()
+	defer resp.Body.Close()
 	return nil
 
 }
