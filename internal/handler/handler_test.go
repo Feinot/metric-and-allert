@@ -13,25 +13,13 @@ import (
 type routeTest struct {
 	title string // title of the test
 	//route           *Route            // the route being tested
-	types           string            // a request to test the route
-	vars            map[string]string // the expected vars of the match
-	scheme          string            // the expected scheme of the built URL
-	host            string            // the expected host of the built URL
-	path            string            // the expected path of the built URL
-	query           string            // the expected query string of the built URL
-	pathTemplate    string            // the expected path template of the route
-	hostTemplate    string            // the expected host template of the route
-	queriesTemplate string            // the expected query template of the route
-	methods         []string          // the expected route methods
-	pathRegexp      string            // the expected path regexp
-	queriesRegexp   string            // the expected query regexp
-	shouldMatch     bool              // whether the request is expected to match the route at all
-	shouldRedirect  bool              // whether the request should result in a redirect
-	statusCode      int
-	name            string
-	mType           string
-	valueCounter    int64
-	valueGauge      float64
+	types        string // a request to test the route
+	host         string // the expected host of the built URL
+	statusCode   int
+	name         string
+	mType        string
+	valueCounter int64
+	valueGauge   float64
 }
 
 func TestMetric_UpdateHandler(t *testing.T) {

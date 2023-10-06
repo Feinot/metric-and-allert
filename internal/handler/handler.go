@@ -43,14 +43,16 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
+		fmt.Println("reed")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err := json.Unmarshal(buf, &metrics); err != nil {
+		fmt.Println("unmarshal")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(metrics)
+	fmt.Println("metric:", metrics)
 	switch metrics.MType {
 	case "gauge":
 		//metrics.Value = new(float64)

@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -128,7 +129,7 @@ func GetMetric() {
 func SandGaugeRequest(host string) error {
 	for key, value := range storage.AgentGauge {
 		resp, err := client.Post(fmt.Sprintf("%s%s%s%s%v", host, "/update/gauge/", key, "/", value), "text/plain", nil)
-
+		resp.Header.Set("Content-Encoding", "gzip")
 		if err != nil {
 			return fmt.Errorf("cannot sand post request gauge: %w", err)
 		}
@@ -162,20 +163,38 @@ func SandJSONGaugeRequest(host string) error {
 		metrics.Value = &value
 		metrics.ID = key
 		metrics.MType = "gauge"
+		var requestBody bytes.Buffer
+
 		sp, err := json.Marshal(metrics)
-		q := bytes.NewReader(sp)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		gz := gzip.NewWriter(&requestBody)
+		_, err = gz.Write([]byte(sp))
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = gz.Close()
 		if err != nil {
 			fmt.Println("err")
 			return err
 		}
+
 		fmt.Println(*metrics.Value)
+		url := fmt.Sprintf("%s%s", host, "/update/")
 
-		resp, err := client.Post(fmt.Sprintf("%s%s", host, "/update/"), "application/json", q)
+		req, err := http.NewRequest("POST", url, &requestBody)
+		if err != nil {
+			fmt.Println(err)
 
+		}
+		req.Header.Set("Content-Encoding", "gzip")
+		client.Do(req)
 		if err != nil {
 			return fmt.Errorf("cannot sand post request gauge: %w%s   ", err, key)
 		}
-		defer resp.Body.Close()
+		defer req.Body.Close()
 
 	}
 	return nil
@@ -187,19 +206,36 @@ func SandJSONCounterRequest(host string) error {
 	metrics.ID = storage.M.PollCount.MName
 	metrics.MType = "counter"
 	sp, err := json.Marshal(metrics)
-	q := bytes.NewReader(sp)
+	var requestBody bytes.Buffer
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	gz := gzip.NewWriter(&requestBody)
+	_, err = gz.Write([]byte(sp))
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = gz.Close()
 	if err != nil {
 		fmt.Println("err")
 		return err
 	}
-	//fmt.Println(*metrics.Value)
 
-	resp, err := client.Post(fmt.Sprintf("%s%s", host, "/update/"), "application/json", q)
+	url := fmt.Sprintf("%s%s", host, "/update/")
 
+	req, err := http.NewRequest("POST", url, &requestBody)
 	if err != nil {
-		return fmt.Errorf("cannot sand post request counter: %w", err)
+		fmt.Println(err)
+
 	}
-	defer resp.Body.Close()
+	req.Header.Set("Content-Encoding", "gzip")
+	client.Do(req)
+	if err != nil {
+		return fmt.Errorf("cannot sand post request gauge: %w  ", err)
+	}
+	defer req.Body.Close()
 	return nil
 
 }
