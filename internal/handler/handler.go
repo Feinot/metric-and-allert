@@ -43,20 +43,20 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
-		fmt.Println("reed")
+
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err := json.Unmarshal(buf, &metrics); err != nil {
-		fmt.Println("unmarshal")
+
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("metric:", metrics)
+
 	switch metrics.MType {
 	case "gauge":
 		//metrics.Value = new(float64)
-		fmt.Println("value:", *metrics.Value)
+
 		metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
 
 		resp, err := json.Marshal(metrics)
@@ -64,7 +64,7 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Println(*metrics.Value)
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(resp)
@@ -153,7 +153,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
-		http.Error(w, "err.Error()asda", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	metrics.ID = mt.ID
@@ -162,7 +162,6 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	switch metrics.MType {
 
 	case "gauge":
-		fmt.Println("i cann")
 
 		q := storage.ServerGauge[metrics.ID]
 		metrics.Value = &q
@@ -177,7 +176,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
 	case "counter":
-		fmt.Println("i cann")
+
 		metrics.ID = mt.ID
 		metrics.MType = mt.MType
 		q := storage.ServerCounter[metrics.ID]
@@ -256,7 +255,8 @@ func HomeHandle(w http.ResponseWriter, r *http.Request) {
             <p>{{ .Counter}}</p>
         </div>`))
 		tmpl.Execute(w, storage.Storage)
-
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
 	default:
 		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
