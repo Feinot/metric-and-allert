@@ -263,7 +263,7 @@ func HomeHandle(w http.ResponseWriter, r *http.Request) {
             <p>{{ .Counter}}</p>
         </div>`))
 		tmpl.Execute(w, storage.Storage)
-		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Type", "html/text")
 		w.WriteHeader(http.StatusOK)
 	default:
 		http.Error(w, "", http.StatusMethodNotAllowed)
