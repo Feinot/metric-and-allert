@@ -114,6 +114,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				HandleGuage(metricName, value)
+				w.Header().Set("Content-Type", "application/text")
 				http.Error(w, "", http.StatusOK)
 
 			}
@@ -128,6 +129,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				HandleCaunter(metricName, value)
+				w.Header().Set("Content-Type", "application/text")
 				http.Error(w, "", http.StatusOK)
 			}
 
@@ -221,7 +223,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			q := strconv.FormatFloat(storage.ServerGauge[metricName], 'f', -1, 64)
-			fmt.Println(q)
+			w.Header().Set("Content-Type", "application/text")
 			http.Error(w, q, http.StatusOK)
 		case "counter":
 			q := storage.ServerCounter[metricName]
@@ -232,7 +234,7 @@ func RequestValueHandle(w http.ResponseWriter, r *http.Request) {
 
 			}
 			str := strconv.FormatInt(q, 10)
-			fmt.Println(str)
+			w.Header().Set("Content-Type", "application/text")
 			http.Error(w, str, http.StatusOK)
 
 		default:
