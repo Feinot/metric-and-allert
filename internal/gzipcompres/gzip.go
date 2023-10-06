@@ -95,6 +95,7 @@ func GzipMiddleware(h http.Handler) http.HandlerFunc {
 
 			}
 			ow.Header().Add("Content-Encoding", "gzip")
+			ow.Header().Add("Content-Type", "text/html")
 			// меняем оригинальный http.ResponseWriter на новый
 
 			// не забываем отправить клиенту все сжатые данные после завершения middleware
