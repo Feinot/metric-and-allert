@@ -56,7 +56,10 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	switch metrics.MType {
 	case "gauge":
 		//metrics.Value = new(float64)
-
+		if *metrics.Value == 0 {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
 		metrics.Value = HandleGuage(metrics.ID, *metrics.Value)
 
 		resp, err := json.Marshal(metrics)
@@ -69,6 +72,10 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write(resp)
 	case "counter":
+		if *metrics.Delta == 0 {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
 		metrics.Delta = HandleCaunter(metrics.ID, *metrics.Delta)
 
 		resp, err := json.Marshal(metrics)
@@ -114,7 +121,6 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				HandleGuage(metricName, value)
-				w.Header().Set("Content-Type", "application/text")
 				http.Error(w, "", http.StatusOK)
 
 			}
