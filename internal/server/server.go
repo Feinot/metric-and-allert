@@ -8,12 +8,17 @@ import (
 	"github.com/Feinot/metric-and-allert/internal/gzipcompres"
 	"github.com/Feinot/metric-and-allert/internal/handler"
 	"github.com/Feinot/metric-and-allert/internal/logger"
+	"github.com/Feinot/metric-and-allert/internal/storage"
 	"github.com/go-chi/chi"
 )
 
 func Run() {
 
 	cfg := config.LoadServerConfig()
+	if cfg.Restore == true {
+		storage.SelectMetric(cfg.File)
+	}
+	go storage.Run(cfg.File, cfg.Interval)
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
 	r.Use()
@@ -26,8 +31,8 @@ func Run() {
 
 	r.Get("/", (handler.HomeHandle))
 
-	if err := http.ListenAndServe(cfg[1], gzipcompres.GzipMiddleware(r)); err != nil {
-
+	if err := http.ListenAndServe(cfg.Host, gzipcompres.GzipMiddleware(r)); err != nil {
+		storage.SaveMetrics(cfg.File)
 		fmt.Println("Error: ", err)
 	}
 }
