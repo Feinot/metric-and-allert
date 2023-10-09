@@ -199,7 +199,7 @@ func Run(file string, interval int) {
 
 	case <-tick.C:
 		fmt.Println(SaveMetrics(file))
-
+	case <-tick.C:
 	}
 
 }
