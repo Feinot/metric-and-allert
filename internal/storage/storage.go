@@ -194,12 +194,12 @@ func Run(file string, interval int) {
 
 		return
 	}
-	for {
-		select {
 
-		case <-tick.C:
-			fmt.Println(SaveMetrics(file))
+	select {
 
-		}
+	case <-tick.C:
+		fmt.Println(SaveMetrics(file))
+
 	}
+
 }
