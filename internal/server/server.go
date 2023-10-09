@@ -15,7 +15,7 @@ import (
 func Run() {
 
 	cfg := config.LoadServerConfig()
-	if cfg.Restore == true {
+	if cfg.Restore {
 		storage.SelectMetric(cfg.File)
 	}
 	go storage.Run(cfg.File, cfg.Interval)
