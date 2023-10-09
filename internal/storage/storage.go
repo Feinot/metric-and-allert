@@ -126,6 +126,7 @@ func ConsInit(metric *forms.Metrics, fileName string) error {
 }
 func SaveMetrics(fileName string) error {
 	var metrics forms.Metrics
+	os.Remove(fileName)
 	for key, value := range ServerGauge {
 
 		metrics.Value = &value
@@ -140,7 +141,7 @@ func SaveMetrics(fileName string) error {
 
 		metrics.Delta = &value
 		metrics.ID = key
-		metrics.MType = "caunter"
+		metrics.MType = "counter"
 		if err := ConsInit(&metrics, fileName); err != nil {
 			fmt.Println(err)
 			return err
@@ -151,7 +152,7 @@ func SaveMetrics(fileName string) error {
 }
 func SelectMetric(fileName string) error {
 
-	//defer os.Remove(fileName)
+	defer os.Remove(fileName)
 	var metric *forms.Metrics
 	Producer, err := NewProducer(fileName)
 	if err != nil {
@@ -171,7 +172,7 @@ func SelectMetric(fileName string) error {
 			return nil
 		}
 		metrics := *metric
-		if metrics.MType == "caunter" {
+		if metrics.MType == "counter" {
 			ServerCounter[metric.ID] = *metric.Delta
 		}
 		if metrics.MType == "gauge" {
@@ -194,12 +195,14 @@ func Run(file string, interval int) {
 
 		return
 	}
+	for {
+		select {
 
-	select {
-
-	case <-tick.C:
-		fmt.Println(SaveMetrics(file))
-	case <-tick.C:
+		case <-tick.C:
+			fmt.Println(SaveMetrics(file))
+		case <-tick.C:
+			fmt.Println(ServerGauge)
+			fmt.Println(ServerCounter)
+		}
 	}
-
 }
