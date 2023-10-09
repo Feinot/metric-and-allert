@@ -20,6 +20,9 @@ func HandleGuage(name string, value float64) *float64 {
 
 	storage.ServerGauge[name] = value
 	q := storage.ServerGauge[name]
+	if storage.Interval == 0 {
+		storage.SaveMetrics(storage.File)
+	}
 	return &q
 
 }
@@ -30,6 +33,9 @@ func HandleCaunter(name string, value int64) *int64 {
 
 	} else {
 		storage.ServerCounter[name] = value
+	}
+	if storage.Interval == 0 {
+		storage.SaveMetrics(storage.File)
 	}
 	q := storage.ServerCounter[name]
 	return &q

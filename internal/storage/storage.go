@@ -16,6 +16,8 @@ var AgentCounter = make(map[string]int64)
 var AgentGauge = make(map[string]float64)
 var Storage forms.MemStorage
 var M forms.Monitor
+var Interval int = 1
+var File string
 
 type Producer struct {
 	file *os.File
@@ -186,7 +188,12 @@ func SelectMetric(fileName string) error {
 func Run(file string, interval int) {
 	reportInterval := time.Duration(interval) * time.Second
 	tick := time.NewTicker(reportInterval)
+	if interval == 0 {
+		Interval = interval
+		File = file
 
+		return
+	}
 	for {
 		select {
 
