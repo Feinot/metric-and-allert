@@ -46,7 +46,7 @@ func WithLogging(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		logger, err := zap.NewDevelopment()
 		if err != nil {
-			log.Println("Cannot create logger", err)
+			log.Println("cannot create logger", err)
 			return
 		}
 		defer logger.Sync()

@@ -210,7 +210,7 @@ func Run(file string, interval int) {
 		case <-tick.C:
 			err := SaveMetrics(file)
 			if err != nil {
-				logger.LogError("Cannot Save Metric: ", err)
+				logger.LogError("cannot Save Metric: ", err)
 			}
 		case <-tick.C:
 			fmt.Println(ServerGauge)

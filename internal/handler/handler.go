@@ -51,12 +51,12 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
-		logger.LogError("Cannot io.ReadAll(r.Body)", err)
+		logger.LogError("cannot io.ReadAll(r.Body)", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err := json.Unmarshal(buf, &metrics); err != nil {
-		logger.LogError("Cannot Unmarshal: ", err)
+		logger.LogError("cannot Unmarshal: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -72,7 +72,7 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := json.Marshal(metrics)
 		if err != nil {
-			logger.LogError("Cannot Marskal", err)
+			logger.LogError("cannot Marskal", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -89,7 +89,7 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := json.Marshal(metrics)
 		if err != nil {
-			logger.LogError("Cannot Marshal: ", err)
+			logger.LogError("cannot Marshal: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -120,7 +120,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 			value, err := strconv.ParseFloat(metricValue, 64)
 
 			if err != nil {
-				logger.LogError("Cannot ParseFloat", err)
+				logger.LogError("cannot ParseFloat", err)
 				http.Error(w, "", http.StatusBadRequest)
 				return
 			}
@@ -134,7 +134,7 @@ func RequestUpdateHandle(w http.ResponseWriter, r *http.Request) {
 
 			value, err := strconv.ParseInt(metricValue, 10, 64)
 			if err != nil {
-				logger.LogError("Cannot ParseInt: ", err)
+				logger.LogError("cannot ParseInt: ", err)
 				http.Error(w, "", http.StatusBadRequest)
 				return
 			}
@@ -160,13 +160,13 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
-		logger.LogError("Cannot read from Body: ", err)
+		logger.LogError("cannot read from Body: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
-		logger.LogError("Cannot unmarshal: ", err)
+		logger.LogError("cannot unmarshal: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -191,7 +191,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := json.Marshal(metrics)
 		if err != nil {
-			logger.LogError("Cannot Marshal: ", err)
+			logger.LogError("cannot Marshal: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -209,7 +209,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		}
 		resp, err := json.Marshal(metrics)
 		if err != nil {
-			logger.LogError("Cannot Marshal: ", err)
+			logger.LogError("cannot Marshal: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

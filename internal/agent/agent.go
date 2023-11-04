@@ -76,7 +76,7 @@ func SandGaugeRequest(host string) error {
 		resp, err := client.Post(fmt.Sprintf("%s%s%s%s%v", host, "/update/gauge/", key, "/", value), "text/plain", nil)
 		resp.Header.Set("Content-Encoding", "gzip")
 		if err != nil {
-			return fmt.Errorf("Cannot sand post request gauge: %w", err)
+			return fmt.Errorf("cannot sand post request gauge: %w", err)
 		}
 		defer resp.Body.Close()
 
@@ -89,7 +89,7 @@ func SandCounterRequest(host string) error {
 	resp, err := client.Post(fmt.Sprintf("%s%s%s%s%v", host, "/update/counter/", storage.M.PollCount.MName, "/", storage.M.PollCount.Value), "text/plain", nil)
 
 	if err != nil {
-		return fmt.Errorf("Cannot sand post request counter: %w", err)
+		return fmt.Errorf("cannot sand post request counter: %w", err)
 	}
 	defer resp.Body.Close()
 	return nil
@@ -111,11 +111,11 @@ func SandJSONGaugeRequest(host string) error {
 		gz := gzip.NewWriter(&requestBody)
 		_, err = gz.Write([]byte(sp))
 		if err != nil {
-			logger.LogError("Cannot create writer", err)
+			logger.LogError("cannot create writer", err)
 		}
 		err = gz.Close()
 		if err != nil {
-			logger.LogError("Cannot close NewWriter", err)
+			logger.LogError("cannot close NewWriter", err)
 			return err
 		}
 
@@ -124,13 +124,13 @@ func SandJSONGaugeRequest(host string) error {
 
 		req, err := http.NewRequest("POST", url, &requestBody)
 		if err != nil {
-			logger.LogError("Cannote make POST request ", err)
+			logger.LogError("cannot make POST request ", err)
 
 		}
 		req.Header.Set("Content-Encoding", "gzip")
 		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("Cannot sand post request gauge: %w%s   ", err, key)
+			return fmt.Errorf("cannot sand post request gauge: %w%s   ", err, key)
 		}
 		defer resp.Body.Close()
 
@@ -147,17 +147,17 @@ func SandJSONCounterRequest(host string) error {
 	var requestBody bytes.Buffer
 
 	if err != nil {
-		logger.LogError("Cannot Marshal: ", err)
+		logger.LogError("cannot Marshal: ", err)
 	}
 
 	gz := gzip.NewWriter(&requestBody)
 	_, err = gz.Write([]byte(sp))
 	if err != nil {
-		logger.LogError("Cannot create Writer: ", err)
+		logger.LogError("cannot create Writer: ", err)
 	}
 	err = gz.Close()
 	if err != nil {
-		logger.LogError("Cannot close NewWriter: ", err)
+		logger.LogError("cannot close NewWriter: ", err)
 		return err
 	}
 
@@ -165,13 +165,13 @@ func SandJSONCounterRequest(host string) error {
 
 	req, err := http.NewRequest("POST", url, &requestBody)
 	if err != nil {
-		logger.LogError("Cannot make POST request: ", err)
+		logger.LogError("cannot make POST request: ", err)
 
 	}
 	req.Header.Set("Content-Encoding", "gzip")
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Cannot sand post request gauge: %w  ", err)
+		return fmt.Errorf("cannot sand post request gauge: %w  ", err)
 	}
 	defer resp.Body.Close()
 	return nil
@@ -189,11 +189,11 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-ticker.C:
 			err := SandJSONGaugeRequest(host)
 			if err != nil {
-				logger.LogError("Cannot sand Gauge post request:", err)
+				logger.LogError("cannot sand Gauge post request:", err)
 			}
 			err = SandJSONCounterRequest(host)
 			if err != nil {
-				logger.LogError("Cannot sand Counter post request: ", err)
+				logger.LogError("cannot sand Counter post request: ", err)
 			}
 
 		}
