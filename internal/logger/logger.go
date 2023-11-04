@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,36 +9,45 @@ import (
 )
 
 type (
-	// берём структуру для хранения сведений об ответе
 	responseData struct {
 		status int
 		size   int
 	}
-
-	// добавляем реализацию http.ResponseWriter
 	loggingResponseWriter struct {
-		http.ResponseWriter // встраиваем оригинальный http.ResponseWriter
-		responseData        *responseData
+		http.ResponseWriter
+		responseData *responseData
 	}
 )
 
+var logg *zap.SugaredLogger
+
+func Init() {
+	log, _ := zap.NewDevelopment()
+	//defer logg.Sync()
+	logg = log.Sugar()
+
+}
+func LogError(tmpl string, err error) {
+	Init()
+	logg.Errorf(tmpl, err)
+}
+
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-	// записываем ответ, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size // захватываем размер
+	r.responseData.size += size
 	return size, err
 }
 
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-	// записываем код статуса, используя оригинальный http.ResponseWriter
 	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode // захватываем код статуса
+	r.responseData.status = statusCode
 }
 func WithLogging(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		logger, err := zap.NewDevelopment()
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Cannot create logger", err)
+			return
 		}
 		defer logger.Sync()
 
@@ -50,20 +59,17 @@ func WithLogging(h http.Handler) http.Handler {
 			size:   0,
 		}
 		lw := loggingResponseWriter{
-			ResponseWriter: w, // встраиваем оригинальный http.ResponseWriter
+			ResponseWriter: w,
 			responseData:   responseData,
 		}
-		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
-
+		h.ServeHTTP(&lw, r)
 		duration := time.Since(start)
-
-		//fmt.Println(r.Header.Get("Content-Type"))
 		sugar.Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
-			"status", responseData.status, // получаем перехваченный код статуса ответа
+			"status", responseData.status,
 			"duration", duration,
-			"size", responseData.size, // получаем перехваченный размер ответа
+			"size", responseData.size,
 		)
 	}
 	return http.HandlerFunc(logFn)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Feinot/metric-and-allert/internal/forms"
+	"github.com/Feinot/metric-and-allert/internal/logger"
 )
 
 var ServerCounter = make(map[string]int64)
@@ -21,20 +22,33 @@ var File string
 
 type Producer struct {
 	file *os.File
-	// добавляем Writer в Producer
+
 	writer *bufio.Writer
+}
+
+func ContainsMetrics(name string, types string) bool {
+	var ok bool
+	switch types {
+	case "counter":
+		_, ok = ServerCounter[name]
+	case "gauge":
+		_, ok = ServerGauge[name]
+	}
+
+	return ok
+
 }
 
 func NewProducer(filename string) (*Producer, error) {
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	return &Producer{
 		file: file,
-		// создаём новый Writer
+
 		writer: bufio.NewWriter(file),
 	}, nil
 }
@@ -42,29 +56,26 @@ func NewProducer(filename string) (*Producer, error) {
 func (p *Producer) WriteEvent(metric *forms.Metrics) error {
 	data, err := json.Marshal(&metric)
 	if err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
-	// записываем событие в буфер
 	if _, err := p.writer.Write(data); err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
-	// добавляем перенос строки
 	if err := p.writer.WriteByte('\n'); err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
-	// записываем буфер в файл
 	return p.writer.Flush()
 }
 
 type Consumer struct {
 	file *os.File
-	// добавляем reader в Consumer
+
 	reader *bufio.Reader
 }
 
@@ -72,33 +83,33 @@ func NewConsumer(filename string) (*Consumer, error) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	return &Consumer{
 		file: file,
-		// создаём новый Reader
+
 		reader: bufio.NewReader(file),
 	}, nil
 }
 
 func (c *Consumer) ReadEvent() (*forms.Metrics, error) {
-	// читаем данные до символа переноса строки
+
 	data, err := c.reader.ReadBytes('\n')
 
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
-	// преобразуем данные из JSON-представления в структуру
+
 	metric := forms.Metrics{}
 	err = json.Unmarshal(data, &metric)
 	if err != nil {
-		fmt.Println(metric)
+
 		return nil, err
 	}
-	fmt.Println(metric)
+
 	return &metric, nil
 }
 func (p *Producer) Close() error {
@@ -109,17 +120,15 @@ func (c *Consumer) Close() error {
 }
 func ConsInit(metric *forms.Metrics, fileName string) error {
 
-	//defer os.Remove(fileName)
-
 	Producer, err := NewProducer(fileName)
 	if err != nil {
-		fmt.Println(err)
+
 		return (err)
 	}
 	defer Producer.Close()
 
 	if err := Producer.WriteEvent(metric); err != nil {
-		fmt.Println(err)
+
 		return (err)
 	}
 	return nil
@@ -133,7 +142,7 @@ func SaveMetrics(fileName string) error {
 		metrics.ID = key
 		metrics.MType = "gauge"
 		if err := ConsInit(&metrics, fileName); err != nil {
-			fmt.Println(err)
+
 			return err
 		}
 	}
@@ -143,7 +152,7 @@ func SaveMetrics(fileName string) error {
 		metrics.ID = key
 		metrics.MType = "counter"
 		if err := ConsInit(&metrics, fileName); err != nil {
-			fmt.Println(err)
+
 			return err
 		}
 	}
@@ -192,14 +201,17 @@ func Run(file string, interval int) {
 	if interval == 0 {
 		Interval = interval
 		File = file
-
 		return
 	}
+
 	for {
 		select {
 
 		case <-tick.C:
-			fmt.Println(SaveMetrics(file))
+			err := SaveMetrics(file)
+			if err != nil {
+				logger.LogError("Cannot Save Metric: ", err)
+			}
 		case <-tick.C:
 			fmt.Println(ServerGauge)
 			fmt.Println(ServerCounter)
