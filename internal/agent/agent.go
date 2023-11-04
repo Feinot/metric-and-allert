@@ -141,9 +141,9 @@ func SandJSONGaugeRequest(host string) error {
 }
 func SandJSONCounterRequest(host string) error {
 	var metrics forms.Metrics
-	qas := storage.AgentCounter[storage.M.PollCount.MName]
+	qas := storage.AgentCounter["PollCount"]
 	metrics.Delta = &qas
-	metrics.ID = storage.M.PollCount.MName
+	metrics.ID = "PollCount"
 	metrics.MType = "counter"
 	sp, err := json.Marshal(metrics)
 	var requestBody bytes.Buffer
