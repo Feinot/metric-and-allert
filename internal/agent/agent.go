@@ -68,7 +68,7 @@ func GetMetric() {
 	storage.AgentGauge["StackSys"] = float64(rtm.StackSys)
 	storage.AgentGauge["NumGC"] = float64(rtm.NumGC)
 
-	storage.AgentCounter["PollCount"] = storage.M.PollCount.Value + 1
+	storage.AgentCounter["PollCount"] += 1
 	storage.M.RandomValue.Value = rand.Float64()
 	storage.AgentGauge["RandomValue"] = storage.M.RandomValue.Value
 
