@@ -191,7 +191,7 @@ func Run(host string, reportInterval, interval time.Duration) {
 		case <-ticker.C:
 			err := SandJSONGaugeRequest(host)
 			if err != nil {
-				logger.LogError("cannot sand Gauge post request:", err)
+				logger.LogError("cannot sand Gaug post request:", err)
 			}
 			err = SandJSONCounterRequest(host)
 			if err != nil {
