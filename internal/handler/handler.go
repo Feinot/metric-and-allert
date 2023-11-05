@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"html/template"
 	"io"
@@ -70,6 +71,7 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.LogError("cannot Marskal", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+
 			return
 		}
 
@@ -88,6 +90,7 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
+
 		w.Write(resp)
 	}
 
@@ -155,12 +158,14 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.LogError("cannot read from Body: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("error status 161: ", http.StatusBadRequest)
 		return
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &mt); err != nil {
 		logger.LogError("cannot unmarshal: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("error status 168: ", http.StatusBadRequest)
 		return
 	}
 	metrics.ID = mt.ID
@@ -177,6 +182,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 	case "gauge":
 		if !storage.ContainsMetrics(metrics.ID, metrics.MType) {
 			http.Error(w, "", http.StatusNotFound)
+			fmt.Println("error status 185: ", http.StatusNotFound)
 			return
 		}
 		q := storage.ServerGauge[metrics.ID]
@@ -186,6 +192,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.LogError("cannot Marshal: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("error status 195: ", http.StatusInternalServerError)
 			return
 		}
 
@@ -198,20 +205,24 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		metrics.Delta = &q
 		if !storage.ContainsMetrics(metrics.ID, metrics.MType) {
 			http.Error(w, "", http.StatusNotFound)
+			fmt.Println("error status 208: ", http.StatusNotFound)
 			return
 		}
 		resp, err := json.Marshal(metrics)
 		if err != nil {
 			logger.LogError("cannot Marshal: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("error status 215: ", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(resp)
+		fmt.Println("not error status 222: ", http.StatusBadRequest)
 	default:
 		http.Error(w, "default", http.StatusBadRequest)
+		fmt.Println("error status 225: ", http.StatusBadRequest)
 	}
 
 }
