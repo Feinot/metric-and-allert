@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/Feinot/metric-and-allert/internal/forms"
+	"github.com/Feinot/metric-and-allert/internal/logger"
 	"github.com/Feinot/metric-and-allert/internal/storage"
 	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,7 @@ type routeTest struct {
 }
 
 func TestMetric_UpdateHandler(t *testing.T) {
+	logger.Init()
 	tests := []routeTest{
 		{
 			//pkease talk a little bit about test.title
