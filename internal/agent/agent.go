@@ -97,6 +97,7 @@ func SandCounterRequest(host string) error {
 
 }
 func SandJSONGaugeRequest(host string) error {
+
 	for key, value := range storage.AgentGauge {
 		metrics := forms.Metrics{
 			Value: &value,
@@ -107,8 +108,18 @@ func SandJSONGaugeRequest(host string) error {
 		if err != nil {
 			return fmt.Errorf("cannot send request%v ", err)
 		}
-		SandJSON(jMetrics)
+		req, err := SandJSON(jMetrics, host)
+		if err != nil {
+			logger.LogError("cannot marshal: ", err)
+			return fmt.Errorf("cannot sand post request Gauge: %v  ", err)
+		}
+		resp, err := client.Do(req)
 
+		if err != nil {
+			//	logger.LogError("cannot sand post request Gauge: ", err)
+			return fmt.Errorf("cannot sand post request Gauge: %v  ", err)
+		}
+		defer resp.Body.Close()
 	}
 	return nil
 }
@@ -122,24 +133,36 @@ func SandJSONCounterRequest(host string) error {
 	}
 	jMetrics, err := metrics.ToJason()
 	if err != nil {
-		return fmt.Errorf("cannot send request%v ", err)
+		logger.LogError("cannot marshal: ", err)
+		return fmt.Errorf("cannot send request %v ", err)
 	}
-	SandJSON(jMetrics)
+	req, err := SandJSON(jMetrics, host)
+	if err != nil {
+		logger.LogError("cannot marshal: ", err)
+		return fmt.Errorf("cannot marshal: %w  ", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.LogError("cannot sand post request Counter: ", err)
+		return fmt.Errorf("cannot sand post request Counter: %v  ", err)
+	}
+	defer resp.Body.Close()
+
 	return nil
 
 }
-func SandJSON(sp []byte) error {
+func SandJSON(sp []byte, host string) (*http.Request, error) {
 	var requestBody bytes.Buffer
 	gz := gzip.NewWriter(&requestBody)
 
 	if _, err := gz.Write([]byte(sp)); err != nil {
 		logger.LogError("cannot create Writer: ", err)
-		return fmt.Errorf("cannot marshal: %v   ", err)
+		return nil, fmt.Errorf("cannot marshal: %v   ", err)
 	}
 
 	if err := gz.Close(); err != nil {
 		logger.LogError("cannot close NewWriter: ", err)
-		return fmt.Errorf("cannot close NewWriter: %v   ", err)
+		return nil, fmt.Errorf("cannot close NewWriter: %v   ", err)
 	}
 
 	url := fmt.Sprintf("%s%s", host, "/update/")
@@ -147,17 +170,12 @@ func SandJSON(sp []byte) error {
 	req, err := http.NewRequest("POST", url, &requestBody)
 	if err != nil {
 		logger.LogError("cannot make POST request: ", err)
-		return fmt.Errorf("cannot make POST request: %v   ", err)
+		return nil, fmt.Errorf("cannot make POST request: %v   ", err)
 
 	}
 	req.Header.Set("Content-Encoding", "gzip")
-	resp, err := client.Do(req)
-	if err != nil {
-		logger.LogError("cannot sand post request gauge: ", err)
-		return fmt.Errorf("cannot sand post request gauge: %w  ", err)
-	}
-	defer resp.Body.Close()
-	return nil
+
+	return req, nil
 
 }
 func Run(host string, reportInterval, interval time.Duration) {

@@ -28,7 +28,7 @@ func Init() {
 
 }
 func LogError(tmpl string, err error) {
-
+	Init()
 	logg.Errorf(tmpl, err)
 }
 
