@@ -49,8 +49,8 @@ type compressReader struct {
 func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	zr, err := gzip.NewReader(r)
 	if err != nil {
-		logger.LogError("Cannot create NewReader", err)
-		return nil, fmt.Errorf("Cannot create NewReader: %v", err)
+		logger.LogError("cannot create NewReader", err)
+		return nil, fmt.Errorf("cannot create NewReader: %v", err)
 	}
 
 	return &compressReader{
@@ -65,8 +65,8 @@ func (c compressReader) Read(p []byte) (n int, err error) {
 
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
-		logger.LogError("Cannot close CompresRader", err)
-		return fmt.Errorf("Cannot close CompresRader: %v", err)
+		logger.LogError("cannot close CompresRader", err)
+		return fmt.Errorf("cannot close CompresRader: %v", err)
 	}
 	return c.zr.Close()
 }
@@ -90,7 +90,7 @@ func GzipMiddleware(h http.Handler) http.HandlerFunc {
 
 			cr, err := newCompressReader(r.Body)
 			if err != nil {
-				logger.LogError("Cannot compres Body", err)
+				logger.LogError("cannot compres Body", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
