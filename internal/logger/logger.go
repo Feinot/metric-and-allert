@@ -23,12 +23,12 @@ var logg *zap.SugaredLogger
 
 func Init() {
 	log, _ := zap.NewDevelopment()
-	//defer logg.Sync()
+
 	logg = log.Sugar()
 
 }
 func LogError(tmpl string, err error) {
-	Init()
+
 	logg.Errorf(tmpl, err)
 }
 

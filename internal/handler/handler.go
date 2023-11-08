@@ -220,6 +220,7 @@ func HandleValue(w http.ResponseWriter, r *http.Request) {
 		w.Write(resp)
 
 	default:
+		logger.LogError("cannot Marshal: ", err)
 		http.Error(w, "default", http.StatusBadRequest)
 
 	}

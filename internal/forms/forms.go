@@ -1,5 +1,12 @@
 package forms
 
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/Feinot/metric-and-allert/internal/logger"
+)
+
 type Monitor struct {
 	Alloc,
 	TotalAlloc,
@@ -69,4 +76,14 @@ type Metrics struct {
 type VMetric struct {
 	ID    string `json:"id"` // имя метрики
 	MType string `json:"type"`
+}
+
+func (m *Metrics) ToJason() ([]byte, error) {
+	sp, err := json.Marshal(m)
+
+	if err != nil {
+		logger.LogError("cannot Marshal: ", err)
+		return nil, fmt.Errorf("cannot marshal: %v   ", err)
+	}
+	return sp, nil
 }

@@ -3,7 +3,6 @@ package agent
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -99,68 +98,48 @@ func SandCounterRequest(host string) error {
 }
 func SandJSONGaugeRequest(host string) error {
 	for key, value := range storage.AgentGauge {
-		var metrics forms.Metrics
-		metrics.Value = &value
-		metrics.ID = key
-		metrics.MType = "gauge"
-		var requestBody bytes.Buffer
-
-		sp, err := json.Marshal(metrics)
-		if err != nil {
-			logger.LogError("Cannot unmarshal", err)
+		metrics := forms.Metrics{
+			Value: &value,
+			ID:    key,
+			MType: "gauge",
 		}
-
-		gz := gzip.NewWriter(&requestBody)
-		_, err = gz.Write([]byte(sp))
+		jMetrics, err := metrics.ToJason()
 		if err != nil {
-			logger.LogError("cannot create writer", err)
+			return fmt.Errorf("cannot send request%v ", err)
 		}
-		err = gz.Close()
-		if err != nil {
-			logger.LogError("cannot close NewWriter", err)
-			return err
-		}
-
-		fmt.Println(*metrics.Value)
-		url := fmt.Sprintf("%s%s", host, "/update/")
-
-		req, err := http.NewRequest("POST", url, &requestBody)
-		if err != nil {
-			logger.LogError("cannot make POST request ", err)
-
-		}
-		req.Header.Set("Content-Encoding", "gzip")
-		resp, err := client.Do(req)
-		if err != nil {
-			return fmt.Errorf("cannot sand post request gauge: %w%s   ", err, key)
-		}
-		defer resp.Body.Close()
+		SandJSON(jMetrics)
 
 	}
 	return nil
 }
 func SandJSONCounterRequest(host string) error {
-	var metrics forms.Metrics
+
 	qas := storage.AgentCounter["PollCount"]
-	metrics.Delta = &qas
-	metrics.ID = "PollCount"
-	metrics.MType = "counter"
-	sp, err := json.Marshal(metrics)
+	metrics := forms.Metrics{
+		Delta: &qas,
+		ID:    "PollCount",
+		MType: "counter",
+	}
+	jMetrics, err := metrics.ToJason()
+	if err != nil {
+		return fmt.Errorf("cannot send request%v ", err)
+	}
+	SandJSON(jMetrics)
+	return nil
+
+}
+func SandJSON(sp []byte) error {
 	var requestBody bytes.Buffer
-
-	if err != nil {
-		logger.LogError("cannot Marshal: ", err)
-	}
-
 	gz := gzip.NewWriter(&requestBody)
-	_, err = gz.Write([]byte(sp))
-	if err != nil {
+
+	if _, err := gz.Write([]byte(sp)); err != nil {
 		logger.LogError("cannot create Writer: ", err)
+		return fmt.Errorf("cannot marshal: %v   ", err)
 	}
-	err = gz.Close()
-	if err != nil {
+
+	if err := gz.Close(); err != nil {
 		logger.LogError("cannot close NewWriter: ", err)
-		return err
+		return fmt.Errorf("cannot close NewWriter: %v   ", err)
 	}
 
 	url := fmt.Sprintf("%s%s", host, "/update/")
@@ -168,11 +147,13 @@ func SandJSONCounterRequest(host string) error {
 	req, err := http.NewRequest("POST", url, &requestBody)
 	if err != nil {
 		logger.LogError("cannot make POST request: ", err)
+		return fmt.Errorf("cannot make POST request: %v   ", err)
 
 	}
 	req.Header.Set("Content-Encoding", "gzip")
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.LogError("cannot sand post request gauge: ", err)
 		return fmt.Errorf("cannot sand post request gauge: %w  ", err)
 	}
 	defer resp.Body.Close()
@@ -180,21 +161,21 @@ func SandJSONCounterRequest(host string) error {
 
 }
 func Run(host string, reportInterval, interval time.Duration) {
-	ticker := time.NewTicker(reportInterval)
-	tick := time.NewTicker(interval)
+	reportTicker := time.NewTicker(reportInterval)
+	poolTicker := time.NewTicker(interval)
 
 	for {
 		select {
 
-		case <-tick.C:
+		case <-poolTicker.C:
 			GetMetric()
-		case <-ticker.C:
-			err := SandJSONGaugeRequest(host)
-			if err != nil {
+		case <-reportTicker.C:
+
+			if err := SandJSONGaugeRequest(host); err != nil {
 				logger.LogError("cannot sand Gaug post request:", err)
 			}
-			err = SandJSONCounterRequest(host)
-			if err != nil {
+
+			if err := SandJSONCounterRequest(host); err != nil {
 				logger.LogError("cannot sand Counter post request: ", err)
 			}
 
